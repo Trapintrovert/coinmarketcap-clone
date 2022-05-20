@@ -49,7 +49,7 @@ const Trending = () => {
           <h1 className={styles.h1}> Todays Cryptocurrency Prices by Market Cap</h1>
 
           <div className='flex'>
-            <p className='text-grey-400'>Highlights &nbsp</p>
+            <p className='text-grey-400'>Highlights &nbsp;</p>
             <ReactSwitch checked={checked} onChange={() => {setChecked(!checked)}}/>
           </div>
         </div>
