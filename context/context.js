@@ -1,7 +1,7 @@
-import { createContext, useState, useEffect} from 'react'
-import { useMoralis, useMoralisQuery } from 'react-moralis'
+import { createContext, useState, useEffect } from 'react'
+import { useMoralis } from 'react-moralis'
 
-
+import { useMoralisQuery } from 'react-moralis'
 import {
   dogeAbi,
   daiAbi,
@@ -10,33 +10,31 @@ import {
   dogeAddress,
   linkAddress,
   daiAddress,
-  usdcAddress
+  usdcAddress,
 } from '../lib/constants'
 
 export const CoinMarketContext = createContext()
 
 export const CoinMarketProvider = ({ children }) => {
-
-  const { isAuthenticated, user, Moralis} = useMoralis()
-
+  const { isAuthenticated, user, Moralis } = useMoralis()
   const {
     data: coins,
     error,
-    isLoading:loadingCoins,
-  } = useMoralisQuery('Coins');
+    isLoading: loadingCoins,
+  } = useMoralisQuery('Coins')
 
   const [currentAccount, setCurrentAccount] = useState('')
   const [openBuyCryptoModal, setOpenBuyCryptoModal] = useState(false)
-  const [fromToken, setFromToken] = useState('ETH')
-  const [toToken, setToToken] = useState('')
+  const [fromToken, setFromToken] = useState('')
+  const [toToken, setToToken] = useState('Dai')
   const [amount, setAmount] = useState('')
 
   useEffect(() => {
-    if(isAuthenticated){
+    if (isAuthenticated) {
       const account = user.get('ethAddress')
       setCurrentAccount(account)
     }
-  },[isAuthenticated])
+  }, [isAuthenticated])
 
   const getContractAddress = () => {
     if (fromToken === 'Dai') return daiAddress
@@ -59,33 +57,35 @@ export const CoinMarketProvider = ({ children }) => {
     if (toToken === 'Usdc') return usdcAbi
   }
 
+  const openModal = () => {
+    setOpenBuyCryptoModal(true)
+  }
 
+  //Mint function for the token with send ether to the contract
   const mint = async () => {
     try {
-      if(fromToken === 'ETH'){
-        if(!isAuthenticated) return
+      if (fromToken === 'ETH') {
+        if (!isAuthenticated) return
         await Moralis.enableWeb3()
-        const contractAddress = getToAddress();
-        const abi = getToAbi();
+        const contractAddress = getToAddress()
+        const abi = getToAbi()
 
         let options = {
           contractAddress: contractAddress,
-          function: 'mint',
+          functionName: 'mint',
           abi: abi,
           params: {
             to: currentAccount,
-            amount: Moralis.Units.Token(amount)
-          }
+            amount: Moralis.Units.Token(amount),
+          },
         }
-
         sendEth()
         const transaction = await Moralis.executeFunction(options)
         const receipt = await transaction.wait(4)
         console.log(receipt)
-      }else{
+      } else {
         swapTokens()
       }
-      
     } catch (error) {
       console.error(error.message)
     }
@@ -93,10 +93,10 @@ export const CoinMarketProvider = ({ children }) => {
 
   const swapTokens = async () => {
     try {
-      if(!isAuthenticated) return
+      if (!isAuthenticated) return
       await Moralis.enableWeb3()
 
-      if(fromToken === toToken) return alert('You cannot swap the same token')
+      if (fromToken === toToken) return alert('You cannot swap the same token')
 
       const fromOptions = {
         type: 'erc20',
@@ -104,77 +104,69 @@ export const CoinMarketProvider = ({ children }) => {
         receiver: getContractAddress(),
         contractAddress: getContractAddress(),
       }
-
       const toMintOptions = {
         contractAddress: getToAddress(),
         functionName: 'mint',
         abi: getToAbi(),
-        params:{
+        params: {
           to: currentAccount,
           amount: Moralis.Units.Token(amount, '18'),
-        }
+        },
       }
-
       let fromTransaction = await Moralis.transfer(fromOptions)
       let toMintTransaction = await Moralis.executeFunction(toMintOptions)
       let fromReceipt = await fromTransaction.wait()
       let toReceipt = await toMintTransaction.wait()
-
       console.log(fromReceipt)
       console.log(toReceipt)
-
     } catch (error) {
       console.error(error.message)
     }
   }
 
+  //Send eth function
   const sendEth = async () => {
-    if(!isAuthenticated) return
-    const contractAddress = getToAddress();
+    if (!isAuthenticated) return
+    const contractAddress = getToAddress()
 
     let options = {
       type: 'native',
       amount: Moralis.Units.ETH('0.01'),
       receiver: contractAddress,
     }
-
     const transaction = await Moralis.transfer(options)
-    const receipt = await transaction.await()
+    const receipt = await transaction.wait()
     console.log(receipt)
   }
 
-  const openModal = () => {
-    setOpenBuyCryptoModal(true)
-  }
-  
   const getTopTenCoins = async () => {
     try {
       const res = await fetch('/api/getTopTen')
       const data = await res.json()
       return data.data.data
     } catch (e) {
-      console.error(e.message)
+      console.log(e.message)
     }
   }
 
-  return(
+  return (
     <CoinMarketContext.Provider
-    value={{
-      getTopTenCoins,
-      openBuyCryptoModal,
-      setOpenBuyCryptoModal,
-      coins,
-      loadingCoins,
-      fromToken,
-      toToken,
-      setFromToken,
-      setToToken,
-      amount,
-      setAmount,
-      mint,
-      openModal,
-      
-    }}>
+      value={{
+        getTopTenCoins,
+        openBuyCryptoModal,
+        setOpenBuyCryptoModal,
+        coins,
+        loadingCoins,
+        fromToken,
+        toToken,
+        setFromToken,
+        setToToken,
+        amount,
+        setAmount,
+        mint,
+        openModal,
+      }}
+    >
       {children}
     </CoinMarketContext.Provider>
   )
