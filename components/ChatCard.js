@@ -21,13 +21,13 @@ const styles = {
 }
 
 
-const ChatCard = ({ content = 'Hello World', timeStamp, sender, bullish, senderAvatar, likes, comments }) => {
+const ChatCard = ({ content = '', timeStamp, sender, bullish, senderAvatar, likes, comments }) => {
   return (
     <div className={styles.chatCard}>
       <div className={styles.chatCardWrapper}>
         <div className={styles.flexCenter}>
           <div>
-            <Image src={shiba} width={40} height={40} className='rounded-full' alt="avatar" />
+            <Image src={senderAvatar} width={40} height={40} className='rounded-full' alt="avatar" />
           </div>
           <div className={styles.labelsContainer}>
             {sender}
