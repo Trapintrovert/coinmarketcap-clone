@@ -11,7 +11,7 @@ import solana from '../assets/solana.png'
 import avalanche from '../assets/avalanche.png'
 import bnb from '../assets/bnb.png'
 import { useMoralis } from 'react-moralis'
-import Rate from './cmc-table/rate'
+import Rate from './cmc-table/Rate'
 import RateFilled from './buttons/RateFilled'
 import DropDownBtn from './buttons/DropDownBtn'
 
